@@ -22,6 +22,7 @@ type LoginWithEmailAndPasswordHandlerOutput struct {
 }
 
 type LoginWithEmailAndPasswordHandler struct {
+	HttpLogger                webhttp.HttpLogger
 	LoginWithEmailAndPassword usecases.ILoginWithEmailAndPassword
 }
 
@@ -74,6 +75,7 @@ func (l *LoginWithEmailAndPasswordHandler) Handle(c echo.Context) error {
 			return webhttp.NewUnauthorized(c, err.Error())
 		}
 
+		l.HttpLogger.Log(c, err)
 		return webhttp.NewInternalServerError(c)
 	}
 

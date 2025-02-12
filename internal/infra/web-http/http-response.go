@@ -80,6 +80,6 @@ func NewInternalServerError(c echo.Context) error {
 	return c.JSON(500, HttpResponseError{
 		StatusCode:   500,
 		StatusText:   "INTERNAL_SERVER_ERROR",
-		ErrorMessage: "Something went wrong. Please try again later.",
+		ErrorMessage: "something went wrong. Please try again later",
 	})
 }

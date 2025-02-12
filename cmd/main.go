@@ -9,6 +9,7 @@ import (
 	"github.com/gsaaraujo/hotel-booking-api/internal/application/usecases"
 	"github.com/gsaaraujo/hotel-booking-api/internal/infra/gateways"
 	"github.com/gsaaraujo/hotel-booking-api/internal/infra/handlers"
+	webhttp "github.com/gsaaraujo/hotel-booking-api/internal/infra/web-http"
 	"github.com/jackc/pgx/v5"
 	"github.com/labstack/echo/v4"
 )
@@ -42,6 +43,8 @@ func main() {
 
 	defer conn.Close(context.Background())
 
+	httpLogger := webhttp.NewHttpLogger()
+
 	customersGateway := gateways.CustomersGateway{
 		Conn: conn,
 	}
@@ -52,6 +55,7 @@ func main() {
 	}
 
 	loginWithEmailAndPasswordHandler := handlers.LoginWithEmailAndPasswordHandler{
+		HttpLogger:                httpLogger,
 		LoginWithEmailAndPassword: &loginWithEmailAndPassword,
 	}
 

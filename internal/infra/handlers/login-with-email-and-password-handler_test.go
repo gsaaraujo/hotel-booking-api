@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gsaaraujo/hotel-booking-api/internal/application/usecases"
 	"github.com/gsaaraujo/hotel-booking-api/internal/infra/handlers"
+	webhttp "github.com/gsaaraujo/hotel-booking-api/internal/infra/web-http"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -32,8 +33,10 @@ type LoginWithEmailAndPasswordHandlerSuite struct {
 }
 
 func (l *LoginWithEmailAndPasswordHandlerSuite) SetupTest() {
+	httpLogger := webhttp.NewHttpLogger()
 	l.loginWithEmailAndPasswordMock = LoginWithEmailAndPasswordMock{}
 	l.loginWithEmailAndPasswordHandler = handlers.LoginWithEmailAndPasswordHandler{
+		HttpLogger:                httpLogger,
 		LoginWithEmailAndPassword: &l.loginWithEmailAndPasswordMock,
 	}
 }
@@ -42,18 +45,18 @@ func (l *LoginWithEmailAndPasswordHandlerSuite) TestHandle_OnNoErrors_ReturnsOk(
 	customerId, err := uuid.Parse("5579e9a0-2596-4a30-9741-c0d4005a0327")
 	l.Require().NoError(err)
 	loginWithEmailAndPasswordInput := usecases.LoginWithEmailAndPasswordInput{
-		Email:         "joe.doe@gmail.com",
+		Email:         "john.doe@gmail.com",
 		PlainPassword: "123456",
 	}
 	loginWithEmailAndPasswordOutput := usecases.LoginWithEmailAndPasswordOutput{
 		CustomerId:   customerId,
-		CustomerName: "Joe Doe",
+		CustomerName: "John Doe",
 		AccessToken:  "any_access_token",
 	}
 	l.loginWithEmailAndPasswordMock.On("Execute", loginWithEmailAndPasswordInput).Return(loginWithEmailAndPasswordOutput, nil)
 	request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(`
 	{
-		"email": "joe.doe@gmail.com",
+		"email": "john.doe@gmail.com",
 		"password": "123456"
 		}
 		`))
@@ -72,7 +75,7 @@ func (l *LoginWithEmailAndPasswordHandlerSuite) TestHandle_OnNoErrors_ReturnsOk(
 			"statusText": "OK",
 			"data": {
 				"customerId": "5579e9a0-2596-4a30-9741-c0d4005a0327",
-				"customerName": "Joe Doe",
+				"customerName": "John Doe",
 				"accessToken": "any_access_token"
 			}
 		}
@@ -81,12 +84,12 @@ func (l *LoginWithEmailAndPasswordHandlerSuite) TestHandle_OnNoErrors_ReturnsOk(
 
 func (l *LoginWithEmailAndPasswordHandlerSuite) TestHandle_OnEmailOrPasswordIsIncorrectError_ReturnsUnauthorized() {
 	l.loginWithEmailAndPasswordMock.On("Execute", usecases.LoginWithEmailAndPasswordInput{
-		Email:         "joe.doe@gmail.com",
+		Email:         "john.doe@gmail.com",
 		PlainPassword: "123456",
 	}).Return(usecases.LoginWithEmailAndPasswordOutput{}, errors.New("email or password is incorrect"))
 	request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(`
 		{
-			"email": "joe.doe@gmail.com",
+			"email": "john.doe@gmail.com",
 			"password": "123456"
 		}
 	`))
@@ -176,6 +179,35 @@ func (l *LoginWithEmailAndPasswordHandlerSuite) TestHandle_OnInvalidBody_Returns
 		}
 		`, errorMessage), recorder.Body.String())
 	}
+}
+
+func (l *LoginWithEmailAndPasswordHandlerSuite) TestHandle_OnAnyUnexpectedError_ReturnsInternalServerError() {
+	l.loginWithEmailAndPasswordMock.On("Execute", usecases.LoginWithEmailAndPasswordInput{
+		Email:         "john.doe@gmail.com",
+		PlainPassword: "123456",
+	}).Return(usecases.LoginWithEmailAndPasswordOutput{}, errors.New("unexpected_error"))
+	request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(`
+		{
+			"email": "john.doe@gmail.com",
+			"password": "123456"
+		}
+	`))
+	request.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	recorder := httptest.NewRecorder()
+	e := echo.New()
+	c := e.NewContext(request, recorder)
+
+	err := l.loginWithEmailAndPasswordHandler.Handle(c)
+
+	l.Require().NoError(err)
+	l.Equal(500, recorder.Code)
+	l.JSONEq(`
+		{
+			"statusCode": 500,
+			"statusText": "INTERNAL_SERVER_ERROR",
+			"error": "something went wrong. Please try again later"
+		}
+	`, recorder.Body.String())
 }
 
 func TestLoginWithEmailAndPasswordHandler(t *testing.T) {

@@ -74,18 +74,18 @@ func (c *CustomersGatewaySuite) TearDownTest() {
 func (c *CustomersGatewaySuite) TestFindOneByEmail_OnFinding_ReturnsCustomer() {
 	ctx := context.Background()
 	c.conn.Exec(ctx, `INSERT INTO customers (id, name, email, password) 
-		VALUES ('620d8a0f-abc2-4f80-a1bc-407a037bd920', 'Joe Doe', 'joe.doe@gmail.com', '$2a$12$zkX5/W4LHciSZLR4YRLxHetVwAdppboUHJ6JnNhfSrKqVaSJk5hzu')`)
+		VALUES ('620d8a0f-abc2-4f80-a1bc-407a037bd920', 'John Doe', 'john.doe@gmail.com', '$2a$12$zkX5/W4LHciSZLR4YRLxHetVwAdppboUHJ6JnNhfSrKqVaSJk5hzu')`)
 
-	customerDTO, err := c.customersGateway.FindOneByEmail("joe.doe@gmail.com")
+	customerDTO, err := c.customersGateway.FindOneByEmail("john.doe@gmail.com")
 
 	c.Require().NoError(err)
 	c.Equal("620d8a0f-abc2-4f80-a1bc-407a037bd920", customerDTO.Id.String())
-	c.Equal("Joe Doe", customerDTO.Name)
+	c.Equal("John Doe", customerDTO.Name)
 	c.Equal("$2a$12$zkX5/W4LHciSZLR4YRLxHetVwAdppboUHJ6JnNhfSrKqVaSJk5hzu", customerDTO.HashedPassword)
 }
 
 func (c *CustomersGatewaySuite) TestFindOneByEmail_OnNoFinding_ReturnsNil() {
-	customerDTO, err := c.customersGateway.FindOneByEmail("joe.doe@gmail.com")
+	customerDTO, err := c.customersGateway.FindOneByEmail("john.doe@gmail.com")
 
 	c.Require().NoError(err)
 	c.Nil(customerDTO)

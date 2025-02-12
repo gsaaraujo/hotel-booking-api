@@ -56,7 +56,7 @@ func (l *LoginWithEmailAndPasswordSuite) SetupTest() {
 func (l *LoginWithEmailAndPasswordSuite) TestExecute_OnCorrectEmailAndPassword_ReturnsOutput() {
 	ONE_MONTH := time.Now().Add(30 * 24 * time.Hour).Unix()
 	customerId, err := uuid.Parse("aa473b65-90a8-48ad-ab7d-5bd50a806d38")
-	customerName := "Joe Doe"
+	customerName := "John Doe"
 	l.Require().NoError(err)
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte("123456"), 12)
 	l.Require().NoError(err)
