@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/gsaaraujo/hotel-booking-api/internal/infra/gateways"
 	"github.com/jackc/pgx/v5"
@@ -28,7 +29,9 @@ func (c *CustomersGatewaySuite) SetupTest() {
 		ContainerRequest: testcontainers.ContainerRequest{
 			Image:        "postgres:17.2-alpine3.21",
 			ExposedPorts: []string{"5432/tcp"},
-			WaitingFor:   wait.ForListeningPort("5432/tcp"),
+			WaitingFor: wait.ForLog("database system is ready to accept connections").
+				WithOccurrence(2).
+				WithStartupTimeout(10 * time.Second),
 			Env: map[string]string{
 				"POSTGRES_DB":       "postgres",
 				"POSTGRES_USER":     "postgres",
@@ -38,14 +41,25 @@ func (c *CustomersGatewaySuite) SetupTest() {
 	})
 	c.Require().NoError(err)
 
+	c.postgresContainer = postgresContainer
+
 	host, err := postgresContainer.Host(ctx)
 	c.Require().NoError(err)
 
 	port, err := postgresContainer.MappedPort(ctx, "5432/tcp")
 	c.Require().NoError(err)
 
+	if _, ok := os.LookupEnv("TESTCONTAINERS_HOST_OVERRIDE"); ok {
+		host = os.Getenv("TESTCONTAINERS_HOST_OVERRIDE")
+	}
+
 	conn, err := pgx.Connect(context.Background(), fmt.Sprintf("postgres://postgres:postgres@%s:%s/postgres", host, port.Port()))
 	c.Require().NoError(err)
+
+	c.conn = conn
+	c.customersGateway = gateways.CustomersGateway{
+		Conn: conn,
+	}
 
 	conn.Exec(ctx, `
 		CREATE TABLE IF NOT EXISTS customers (
@@ -57,12 +71,6 @@ func (c *CustomersGatewaySuite) SetupTest() {
 			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 		)
 	`)
-
-	c.conn = conn
-	c.postgresContainer = postgresContainer
-	c.customersGateway = gateways.CustomersGateway{
-		Conn: conn,
-	}
 }
 
 func (c *CustomersGatewaySuite) TearDownTest() {

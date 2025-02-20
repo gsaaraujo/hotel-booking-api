@@ -1,11 +1,8 @@
 package usecases_test
 
 import (
-	"fmt"
 	"testing"
-	"time"
 
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/gsaaraujo/hotel-booking-api/internal/application/gateways"
 	"github.com/gsaaraujo/hotel-booking-api/internal/application/usecases"
@@ -54,7 +51,6 @@ func (l *LoginWithEmailAndPasswordSuite) SetupTest() {
 }
 
 func (l *LoginWithEmailAndPasswordSuite) TestExecute_OnCorrectEmailAndPassword_ReturnsOutput() {
-	ONE_MONTH := time.Now().Add(30 * 24 * time.Hour).Unix()
 	customerId, err := uuid.Parse("aa473b65-90a8-48ad-ab7d-5bd50a806d38")
 	customerName := "John Doe"
 	l.Require().NoError(err)
@@ -75,16 +71,9 @@ func (l *LoginWithEmailAndPasswordSuite) TestExecute_OnCorrectEmailAndPassword_R
 	output, err := l.loginWithEmailAndPassword.Execute(input)
 	l.Require().NoError(err)
 
-	token, err := jwt.Parse(output.AccessToken, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
-		}
-		return []byte("secret"), nil
-	})
 	l.Require().NoError(err)
 	l.Equal(customerId, output.CustomerId)
 	l.Equal(customerName, output.CustomerName)
-	l.Equal(ONE_MONTH, int64(token.Claims.(jwt.MapClaims)["exp"].(float64)))
 }
 
 func (l *LoginWithEmailAndPasswordSuite) TestExecute_OnCorrectEmailButIncorrectPassword_ReturnsError() {

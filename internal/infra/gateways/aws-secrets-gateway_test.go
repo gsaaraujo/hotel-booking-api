@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -32,7 +33,7 @@ func (a *AwsSecretsGatewaySuite) SetupTest() {
 		ContainerRequest: testcontainers.ContainerRequest{
 			Image:        "localstack/localstack:latest",
 			ExposedPorts: []string{"4566/tcp"},
-			WaitingFor:   wait.ForListeningPort("4566/tcp"),
+			WaitingFor:   wait.ForLog("Ready.").WithStartupTimeout(10 * time.Second),
 			Env: map[string]string{
 				"SERVICES": "secretsmanager",
 			},
@@ -40,11 +41,17 @@ func (a *AwsSecretsGatewaySuite) SetupTest() {
 	})
 	a.Require().NoError(err)
 
+	a.awsContainer = awsContainer
+
 	host, err := awsContainer.Host(ctx)
 	a.Require().NoError(err)
 
 	port, err := awsContainer.MappedPort(ctx, "4566/tcp")
 	a.Require().NoError(err)
+
+	if _, ok := os.LookupEnv("TESTCONTAINERS_HOST_OVERRIDE"); ok {
+		host = os.Getenv("TESTCONTAINERS_HOST_OVERRIDE")
+	}
 
 	awsConfig, err := config.LoadDefaultConfig(ctx,
 		config.WithRegion("us-east-1"),
@@ -56,7 +63,6 @@ func (a *AwsSecretsGatewaySuite) SetupTest() {
 		o.BaseEndpoint = aws.String(fmt.Sprintf("http://%s:%s", host, port.Port()))
 	})
 
-	a.awsContainer = awsContainer
 	a.secretsClient = secretsClient
 	a.awsSecretsGateway = gateways.AwsSecretsGateway{
 		SecretsClient: secretsClient,

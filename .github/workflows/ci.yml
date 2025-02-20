@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+jobs:
+  unit-test:
+    runs-on: ubuntu-latest
+
+    env:
+      TESTCONTAINERS_HOST_OVERRIDE: host.docker.internal
+
+    steps:
+      - name: Add user to docker group
+        run: |
+          sudo usermod -aG docker runner
+          sudo chown runner:docker /var/run/docker.sock
+          sudo chmod 660 /var/run/docker.sock
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.23
+
+      - name: Download dependencies
+        run: go mod tidy
+
+      - name: Run Linting
+        run: go build -v ./...
+
+      - name: Run Tests
+        run: go test -v ./...
+
+  # integration-test:
+  #   needs: unit-test
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
+
+  #     - name: Set up Terraform
+  #       uses: hashicorp/setup-terraform@v3
+  #       with:
+  #         terraform_version: 1.8
+
+  #     - name: Initialize Terraform
+  #       run: terraform init
+
+  #     - name: Apply Terraform (create test infra)
+  #       run: terraform apply -auto-approve
+
+  #     - name: Run Integration Tests
+  #       run: go test -v ./integration_tests
+
+  #     - name: Destroy Terraform (clean up)
+  #       if: always()
+  #       run: terraform destroy -auto-approve
