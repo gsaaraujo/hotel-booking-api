@@ -49,8 +49,8 @@ func (c *CustomersGatewaySuite) SetupTest() {
 	port, err := postgresContainer.MappedPort(ctx, "5432/tcp")
 	c.Require().NoError(err)
 
-	if _, ok := os.LookupEnv("TESTCONTAINERS_HOST_OVERRIDE"); ok {
-		host = os.Getenv("TESTCONTAINERS_HOST_OVERRIDE")
+	if _, ok := os.LookupEnv("ACT"); ok {
+		host = "host.docker.internal"
 	}
 
 	conn, err := pgx.Connect(context.Background(), fmt.Sprintf("postgres://postgres:postgres@%s:%s/postgres", host, port.Port()))

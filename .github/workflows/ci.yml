@@ -8,9 +8,6 @@ jobs:
   unit-test:
     runs-on: ubuntu-latest
 
-    env:
-      TESTCONTAINERS_HOST_OVERRIDE: host.docker.internal
-
     steps:
       - name: Add user to docker group
         run: |

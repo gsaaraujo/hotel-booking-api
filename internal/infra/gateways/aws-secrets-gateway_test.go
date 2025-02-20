@@ -49,8 +49,8 @@ func (a *AwsSecretsGatewaySuite) SetupTest() {
 	port, err := awsContainer.MappedPort(ctx, "4566/tcp")
 	a.Require().NoError(err)
 
-	if _, ok := os.LookupEnv("TESTCONTAINERS_HOST_OVERRIDE"); ok {
-		host = os.Getenv("TESTCONTAINERS_HOST_OVERRIDE")
+	if _, ok := os.LookupEnv("ACT"); ok {
+		host = "host.docker.internal"
 	}
 
 	awsConfig, err := config.LoadDefaultConfig(ctx,
