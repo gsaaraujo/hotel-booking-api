@@ -61,7 +61,7 @@ func (c *CustomersGatewaySuite) SetupTest() {
 		Conn: conn,
 	}
 
-	conn.Exec(ctx, `
+	_, err = conn.Exec(ctx, `
 		CREATE TABLE IF NOT EXISTS customers (
 			id UUID PRIMARY KEY,
 			name VARCHAR(50) NOT NULL,
@@ -71,18 +71,24 @@ func (c *CustomersGatewaySuite) SetupTest() {
 			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 		)
 	`)
+	c.Require().NoError(err)
 }
 
 func (c *CustomersGatewaySuite) TearDownTest() {
 	ctx := context.Background()
-	c.postgresContainer.Terminate(ctx)
-	c.conn.Close(ctx)
+
+	err := c.postgresContainer.Terminate(ctx)
+	c.Require().NoError(err)
+
+	err = c.conn.Close(ctx)
+	c.Require().NoError(err)
 }
 
 func (c *CustomersGatewaySuite) TestFindOneByEmail_OnFinding_ReturnsCustomer() {
 	ctx := context.Background()
-	c.conn.Exec(ctx, `INSERT INTO customers (id, name, email, password) 
+	_, err := c.conn.Exec(ctx, `INSERT INTO customers (id, name, email, password) 
 		VALUES ('620d8a0f-abc2-4f80-a1bc-407a037bd920', 'John Doe', 'john.doe@gmail.com', '$2a$12$zkX5/W4LHciSZLR4YRLxHetVwAdppboUHJ6JnNhfSrKqVaSJk5hzu')`)
+	c.Require().NoError(err)
 
 	customerDTO, err := c.customersGateway.FindOneByEmail("john.doe@gmail.com")
 

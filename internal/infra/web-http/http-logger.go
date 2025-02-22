@@ -22,8 +22,7 @@ func NewHttpLogger() HttpLogger {
 
 func (h *HttpLogger) Log(c echo.Context, err error) {
 	var body map[string]int
-	c.Bind(&body)
-
+	_ = c.Bind(&body)
 	h.logger.LogAttrs(context.Background(), slog.LevelError, "Unexpected Error",
 		slog.String("request_method", c.Request().Method),
 		slog.String("request_endpoint", c.Request().RequestURI),

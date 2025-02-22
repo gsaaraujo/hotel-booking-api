@@ -71,7 +71,8 @@ func (a *AwsSecretsGatewaySuite) SetupTest() {
 
 func (a *AwsSecretsGatewaySuite) TearDownTest() {
 	ctx := context.Background()
-	a.awsContainer.Terminate(ctx)
+	err := a.awsContainer.Terminate(ctx)
+	a.Require().NoError(err)
 }
 
 func (a *AwsSecretsGatewaySuite) TestGet_OnSuccess_ReturnsSecret() {

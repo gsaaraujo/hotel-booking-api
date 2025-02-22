@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"os"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
@@ -15,12 +14,7 @@ import (
 )
 
 func main() {
-
-	if _, ok := os.LookupEnv("AWS_REGION"); !ok {
-		panic("environment variable AWS_REGION not set")
-	}
-
-	defaultConfig, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(os.Getenv("AWS_REGION")))
+	defaultConfig, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-east-1"))
 	if err != nil {
 		panic(err)
 	}
@@ -66,5 +60,8 @@ func main() {
 		return loginWithEmailAndPasswordHandler.Handle(c)
 	})
 
-	e.Start(":8080")
+	err = e.Start(":8080")
+	if err != nil {
+		panic(err)
+	}
 }
