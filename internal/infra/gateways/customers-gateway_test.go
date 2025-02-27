@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/exec"
 	"testing"
 	"time"
 
@@ -61,16 +62,14 @@ func (c *CustomersGatewaySuite) SetupTest() {
 		Conn: conn,
 	}
 
-	_, err = conn.Exec(ctx, `
-		CREATE TABLE IF NOT EXISTS customers (
-			id UUID PRIMARY KEY,
-			name VARCHAR(50) NOT NULL,
-			email VARCHAR(100) UNIQUE NOT NULL,
-			password TEXT NOT NULL,
-			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-		)
-	`)
+	os.Setenv("PGUSER", "postgres")
+	os.Setenv("PGPASSWORD", "postgres")
+	os.Setenv("PGHOST", host)
+	os.Setenv("PGPORT", port.Port())
+	os.Setenv("PGDATABASE", "postgres")
+
+	cmd := exec.Command("tern", "migrate", "-m", "../../../migrations")
+	_, err = cmd.CombinedOutput()
 	c.Require().NoError(err)
 }
 

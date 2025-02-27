@@ -46,6 +46,9 @@ jobs:
         with:
           go-version: 1.24
 
+      - name: Install Tern
+        run: go install github.com/jackc/tern/v2@latest
+
       - name: Download Dependencies
         run: go mod download
 
