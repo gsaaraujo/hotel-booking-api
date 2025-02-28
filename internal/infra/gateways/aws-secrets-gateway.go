@@ -27,7 +27,7 @@ func (a *AwsSecretsGateway) Get(key string) (string, error) {
 		return "", err
 	}
 
-	var secret map[string]interface{}
+	var secret map[string]any
 
 	err = json.Unmarshal([]byte(*secretValue.SecretString), &secret)
 	if err != nil {

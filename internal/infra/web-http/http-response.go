@@ -3,9 +3,9 @@ package webhttp
 import "github.com/labstack/echo/v4"
 
 type HttpResponseSuccess struct {
-	StatusCode uint16      `json:"statusCode"`
-	StatusText string      `json:"statusText"`
-	Data       interface{} `json:"data"`
+	StatusCode uint16 `json:"statusCode"`
+	StatusText string `json:"statusText"`
+	Data       any    `json:"data"`
 }
 
 type HttpResponseError struct {
@@ -20,7 +20,7 @@ type HttpResponseErrors struct {
 	ErrorMessages []string `json:"errors"`
 }
 
-func NewOk(c echo.Context, data interface{}) error {
+func NewOk(c echo.Context, data any) error {
 	return c.JSON(200, HttpResponseSuccess{
 		StatusCode: 200,
 		StatusText: "OK",

@@ -11,8 +11,8 @@ import (
 )
 
 type LoginWithEmailAndPasswordHandlerInput struct {
-	Email    *interface{}
-	Password *interface{}
+	Email    *any
+	Password *any
 }
 
 type LoginWithEmailAndPasswordHandlerOutput struct {
