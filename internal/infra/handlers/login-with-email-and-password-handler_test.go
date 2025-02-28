@@ -156,6 +156,20 @@ func (l *LoginWithEmailAndPasswordHandlerSuite) TestHandle_OnInvalidBody_Returns
 			}`,
 			"errors": `["email must not be empty", "password must be string"]`,
 		},
+		{
+			"body": `{
+				"email": 0.5,
+				"password": {}
+			}`,
+			"errors": `["email must be string", "password must be string"]`,
+		},
+		{
+			"body": `{
+				"email": "joieoplkkuyrmmnchskkloaokaweokfopsdjgsdijjoieoplkkuyrmmnchskkloaokaweokfopsdjgsdijjoieoplkkuyrmmnchskkloaokaweokfopsdjgsdijjoieoplkkuyrmmnchskkloaokaweokfopsdjgsdijjoieoplkkuyrmmnchskkloaokaweokfopsdjgsdijjoieoplkkuyrmmnchskkloaokaweokfopsdjgsdijjoieoplkkuyuio",
+				"password": "joieoplkkuyrmmnchskkloaokaweokfopsdjgsdijjoieoplkkuyrmmnchskkloaokaweokfopsdjgsdijjoieoplkkuyrmmnchskkloaokaweokfopsdjgsdijjoieoplkkuyrmmnchskkloaokaweokfopsdjgsdijjoieoplkkuyrmmnchskkloaokaweokfopsdjgsdijjoieoplkkuyrmmnchskkloaokaweokfopsdjgsdijjoieoplkkuyuio"
+			}`,
+			"errors": `["email must be 256 characters or fewer", "password must be 256 characters or fewer"]`,
+		},
 	}
 
 	for _, inputAndError := range bodiesAndErrors {

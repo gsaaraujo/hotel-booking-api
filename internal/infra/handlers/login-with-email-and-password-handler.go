@@ -59,6 +59,14 @@ func (l *LoginWithEmailAndPasswordHandler) Handle(c echo.Context) error {
 		errorMessages = append(errorMessages, "password must be string")
 	}
 
+	if requestBody.Email != nil && reflect.TypeOf(*requestBody.Email).Kind() == reflect.String && len((*requestBody.Email).(string)) > 256 {
+		errorMessages = append(errorMessages, "email must be 256 characters or fewer")
+	}
+
+	if requestBody.Password != nil && reflect.TypeOf(*requestBody.Password).Kind() == reflect.String && len((*requestBody.Password).(string)) > 256 {
+		errorMessages = append(errorMessages, "password must be 256 characters or fewer")
+	}
+
 	if len(errorMessages) > 0 {
 		return webhttp.NewBadRequestValidation(c, errorMessages)
 	}
