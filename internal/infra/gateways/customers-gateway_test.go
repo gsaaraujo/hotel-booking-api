@@ -22,7 +22,7 @@ type CustomersGatewaySuite struct {
 	customersGateway  gateways.CustomersGateway
 }
 
-func (c *CustomersGatewaySuite) SetupTest() {
+func (c *CustomersGatewaySuite) SetupSuite() {
 	os.Setenv("TESTCONTAINERS_RYUK_DISABLED", "true")
 	ctx := context.Background()
 	postgresContainer, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
@@ -73,7 +73,13 @@ func (c *CustomersGatewaySuite) SetupTest() {
 	c.Require().NoError(err)
 }
 
-func (c *CustomersGatewaySuite) TearDownTest() {
+func (c *CustomersGatewaySuite) SetupTest() {
+	ctx := context.Background()
+	_, err := c.conn.Exec(ctx, "TRUNCATE TABLE customers")
+	c.Require().NoError(err)
+}
+
+func (c *CustomersGatewaySuite) TearDownSuite() {
 	ctx := context.Background()
 
 	err := c.postgresContainer.Terminate(ctx)

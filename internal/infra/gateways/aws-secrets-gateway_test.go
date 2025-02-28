@@ -25,13 +25,13 @@ type AwsSecretsGatewaySuite struct {
 	awsSecretsGateway gateways.AwsSecretsGateway
 }
 
-func (a *AwsSecretsGatewaySuite) SetupTest() {
+func (a *AwsSecretsGatewaySuite) SetupSuite() {
 	os.Setenv("TESTCONTAINERS_RYUK_DISABLED", "true")
 	ctx := context.Background()
 	awsContainer, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		Started: true,
 		ContainerRequest: testcontainers.ContainerRequest{
-			Image:        "localstack/localstack:latest",
+			Image:        "localstack/localstack:4.2.0",
 			ExposedPorts: []string{"4566/tcp"},
 			WaitingFor:   wait.ForLog("Ready.").WithStartupTimeout(10 * time.Second),
 			Env: map[string]string{
@@ -70,6 +70,15 @@ func (a *AwsSecretsGatewaySuite) SetupTest() {
 }
 
 func (a *AwsSecretsGatewaySuite) TearDownTest() {
+	ctx := context.Background()
+	_, err := a.secretsClient.DeleteSecret(ctx, &secretsmanager.DeleteSecretInput{
+		SecretId:                   aws.String("any_secret_name"),
+		ForceDeleteWithoutRecovery: aws.Bool(true),
+	})
+	a.Require().NoError(err)
+}
+
+func (a *AwsSecretsGatewaySuite) TearDownSuite() {
 	ctx := context.Background()
 	err := a.awsContainer.Terminate(ctx)
 	a.Require().NoError(err)
