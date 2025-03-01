@@ -1,9 +1,6 @@
 package handlers
 
 import (
-	"reflect"
-	"strings"
-
 	"github.com/google/uuid"
 	"github.com/gsaaraujo/hotel-booking-api/internal/application/usecases"
 	webhttp "github.com/gsaaraujo/hotel-booking-api/internal/infra/web-http"
@@ -11,8 +8,8 @@ import (
 )
 
 type LoginWithEmailAndPasswordHandlerInput struct {
-	Email    *any
-	Password *any
+	Email    any `validate:"required,string,notEmpty,lt=256"`
+	Password any `validate:"required,string,notEmpty,lt=256"`
 }
 
 type LoginWithEmailAndPasswordHandlerOutput struct {
@@ -35,45 +32,16 @@ func (l *LoginWithEmailAndPasswordHandler) Handle(c echo.Context) error {
 
 	errorMessages := []string{}
 
-	if requestBody.Email == nil {
-		errorMessages = append(errorMessages, "email is required")
-	}
-
-	if requestBody.Password == nil {
-		errorMessages = append(errorMessages, "password is required")
-	}
-
-	if requestBody.Email != nil && reflect.TypeOf(*requestBody.Email).Kind() == reflect.String && strings.TrimSpace((*requestBody.Email).(string)) == "" {
-		errorMessages = append(errorMessages, "email must not be empty")
-	}
-
-	if requestBody.Password != nil && reflect.TypeOf(*requestBody.Password).Kind() == reflect.String && strings.TrimSpace((*requestBody.Password).(string)) == "" {
-		errorMessages = append(errorMessages, "password must not be empty")
-	}
-
-	if requestBody.Email != nil && reflect.TypeOf(*requestBody.Email).Kind() != reflect.String {
-		errorMessages = append(errorMessages, "email must be string")
-	}
-
-	if requestBody.Password != nil && reflect.TypeOf(*requestBody.Password).Kind() != reflect.String {
-		errorMessages = append(errorMessages, "password must be string")
-	}
-
-	if requestBody.Email != nil && reflect.TypeOf(*requestBody.Email).Kind() == reflect.String && len((*requestBody.Email).(string)) > 256 {
-		errorMessages = append(errorMessages, "email must be 256 characters or fewer")
-	}
-
-	if requestBody.Password != nil && reflect.TypeOf(*requestBody.Password).Kind() == reflect.String && len((*requestBody.Password).(string)) > 256 {
-		errorMessages = append(errorMessages, "password must be 256 characters or fewer")
-	}
+	validator := webhttp.NewHttpValidator()
+	errorMessages = append(errorMessages, validator.Validate(requestBody)...)
 
 	if len(errorMessages) > 0 {
 		return webhttp.NewBadRequestValidation(c, errorMessages)
 	}
 
 	input := usecases.LoginWithEmailAndPasswordInput{
-		Email:         (*requestBody.Email).(string),
-		PlainPassword: (*requestBody.Password).(string),
+		Email:         (requestBody.Email).(string),
+		PlainPassword: (requestBody.Password).(string),
 	}
 
 	output, err := l.LoginWithEmailAndPassword.Execute(input)

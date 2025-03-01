@@ -168,7 +168,7 @@ func (l *LoginWithEmailAndPasswordHandlerSuite) TestHandle_OnInvalidBody_Returns
 				"email": "joieoplkkuyrmmnchskkloaokaweokfopsdjgsdijjoieoplkkuyrmmnchskkloaokaweokfopsdjgsdijjoieoplkkuyrmmnchskkloaokaweokfopsdjgsdijjoieoplkkuyrmmnchskkloaokaweokfopsdjgsdijjoieoplkkuyrmmnchskkloaokaweokfopsdjgsdijjoieoplkkuyrmmnchskkloaokaweokfopsdjgsdijjoieoplkkuyuio",
 				"password": "joieoplkkuyrmmnchskkloaokaweokfopsdjgsdijjoieoplkkuyrmmnchskkloaokaweokfopsdjgsdijjoieoplkkuyrmmnchskkloaokaweokfopsdjgsdijjoieoplkkuyrmmnchskkloaokaweokfopsdjgsdijjoieoplkkuyrmmnchskkloaokaweokfopsdjgsdijjoieoplkkuyrmmnchskkloaokaweokfopsdjgsdijjoieoplkkuyuio"
 			}`,
-			"errors": `["email must be 256 characters or fewer", "password must be 256 characters or fewer"]`,
+			"errors": `["email must be less than 256", "password must be less than 256"]`,
 		},
 	}
 
