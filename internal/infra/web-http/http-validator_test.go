@@ -18,7 +18,8 @@ func (h *HttpValidatorSuite) TestValidate_OnTagsStringNotEmpty_ReturnsEmptyArray
 	example := Example{
 		Field: "abcdefg",
 	}
-	validator := webhttp.NewHttpValidator()
+	validator, err := webhttp.NewHttpValidator()
+	h.Require().NoError(err)
 	errorMessages := validator.Validate(example)
 
 	h.EqualValues([]string{}, errorMessages)
@@ -34,7 +35,8 @@ func (h *HttpValidatorSuite) TestValidate_OnTagRequired_ReturnsError() {
 		Field2: 0,
 		Field3: nil,
 	}
-	validator := webhttp.NewHttpValidator()
+	validator, err := webhttp.NewHttpValidator()
+	h.Require().NoError(err)
 	errorMessages := validator.Validate(example)
 
 	h.EqualValues([]string{"field1 is required", "field3 is required"}, errorMessages)
@@ -49,7 +51,8 @@ func (h *HttpValidatorSuite) TestValidate_OnTagEmpty_ReturnsError() {
 		Field1: "",
 		Field2: " ",
 	}
-	validator := webhttp.NewHttpValidator()
+	validator, err := webhttp.NewHttpValidator()
+	h.Require().NoError(err)
 	errorMessages := validator.Validate(example)
 
 	h.EqualValues([]string{"field1 must not be empty", "field2 must not be empty"}, errorMessages)
@@ -64,7 +67,8 @@ func (h *HttpValidatorSuite) TestValidate_OnTagString_ReturnsError() {
 		Field1: 1,
 		Field2: []string{},
 	}
-	validator := webhttp.NewHttpValidator()
+	validator, err := webhttp.NewHttpValidator()
+	h.Require().NoError(err)
 	errorMessages := validator.Validate(example)
 
 	h.EqualValues([]string{"field1 must be string", "field2 must be string"}, errorMessages)
@@ -77,7 +81,8 @@ func (h *HttpValidatorSuite) TestValidate_OnTagUuid4_ReturnsError() {
 	example := Example{
 		Field: "abc",
 	}
-	validator := webhttp.NewHttpValidator()
+	validator, err := webhttp.NewHttpValidator()
+	h.Require().NoError(err)
 	errorMessages := validator.Validate(example)
 
 	h.EqualValues([]string{"field must be uuidv4"}, errorMessages)
@@ -90,7 +95,8 @@ func (h *HttpValidatorSuite) TestValidate_OnTagGte_ReturnsError() {
 	example := Example{
 		Field: "abc",
 	}
-	validator := webhttp.NewHttpValidator()
+	validator, err := webhttp.NewHttpValidator()
+	h.Require().NoError(err)
 	errorMessages := validator.Validate(example)
 
 	h.EqualValues([]string{"field must be greater than or equal to 8"}, errorMessages)
@@ -103,7 +109,8 @@ func (h *HttpValidatorSuite) TestValidate_OnTagLt_ReturnsError() {
 	example := Example{
 		Field: "abcdefgh",
 	}
-	validator := webhttp.NewHttpValidator()
+	validator, err := webhttp.NewHttpValidator()
+	h.Require().NoError(err)
 	errorMessages := validator.Validate(example)
 
 	h.EqualValues([]string{"field must be less than 4"}, errorMessages)

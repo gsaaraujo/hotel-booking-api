@@ -31,8 +31,13 @@ func (l *LoginWithEmailAndPasswordHandler) Handle(c echo.Context) error {
 	}
 
 	errorMessages := []string{}
+	validator, err := webhttp.NewHttpValidator()
 
-	validator := webhttp.NewHttpValidator()
+	if err != nil {
+		l.HttpLogger.Log(c, err)
+		return webhttp.NewInternalServerError(c)
+	}
+
 	errorMessages = append(errorMessages, validator.Validate(requestBody)...)
 
 	if len(errorMessages) > 0 {

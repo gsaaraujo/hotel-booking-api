@@ -12,14 +12,25 @@ type HttpValidator struct {
 	validate *validator.Validate
 }
 
-func NewHttpValidator() HttpValidator {
+func NewHttpValidator() (HttpValidator, error) {
 	newValidator := validator.New(validator.WithRequiredStructEnabled())
-	newValidator.RegisterValidation("string", isString)
-	newValidator.RegisterValidation("notEmpty", isNotEmpty)
+	err := newValidator.RegisterValidation("string", isString)
 
-	return HttpValidator{
+	if err != nil {
+		return HttpValidator{}, err
+	}
+
+	err = newValidator.RegisterValidation("notEmpty", isNotEmpty)
+
+	if err != nil {
+		return HttpValidator{}, err
+	}
+
+	HttpValidator := HttpValidator{
 		validate: newValidator,
 	}
+
+	return HttpValidator, nil
 }
 
 func isString(fieldLevel validator.FieldLevel) bool {
