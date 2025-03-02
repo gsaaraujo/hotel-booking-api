@@ -6,24 +6,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/gsaaraujo/hotel-booking-api/internal/application/gateways"
 	"github.com/gsaaraujo/hotel-booking-api/internal/application/usecases"
+	"github.com/gsaaraujo/hotel-booking-api/internal/application/usecases/mocks"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"golang.org/x/crypto/bcrypt"
 )
-
-type CustomersGatewayMock struct {
-	mock.Mock
-}
-
-func (m *CustomersGatewayMock) FindOneByEmail(email string) (*gateways.CustomerDTO, error) {
-	args := m.Called(email)
-
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-
-	return args.Get(0).(*gateways.CustomerDTO), args.Error(1)
-}
 
 type SecretsGatewayMock struct {
 	mock.Mock
@@ -37,13 +24,13 @@ func (m *SecretsGatewayMock) Get(key string) (string, error) {
 type LoginWithEmailAndPasswordSuite struct {
 	suite.Suite
 	secretsGatewayMock        SecretsGatewayMock
-	customersGatewayMock      CustomersGatewayMock
+	customersGatewayMock      mocks.CustomersGatewayMock
 	loginWithEmailAndPassword usecases.LoginWithEmailAndPassword
 }
 
 func (l *LoginWithEmailAndPasswordSuite) SetupTest() {
 	l.secretsGatewayMock = SecretsGatewayMock{}
-	l.customersGatewayMock = CustomersGatewayMock{}
+	l.customersGatewayMock = mocks.CustomersGatewayMock{}
 	l.loginWithEmailAndPassword = usecases.LoginWithEmailAndPassword{
 		SecretsGateway:   &l.secretsGatewayMock,
 		CustomersGateway: &l.customersGatewayMock,

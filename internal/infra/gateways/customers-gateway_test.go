@@ -8,6 +8,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
+	applicationgateway "github.com/gsaaraujo/hotel-booking-api/internal/application/gateways"
 	"github.com/gsaaraujo/hotel-booking-api/internal/infra/gateways"
 	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/suite"
@@ -89,25 +91,70 @@ func (c *CustomersGatewaySuite) TearDownSuite() {
 	c.Require().NoError(err)
 }
 
-func (c *CustomersGatewaySuite) TestFindOneByEmail_OnFinding_ReturnsCustomer() {
-	ctx := context.Background()
-	_, err := c.conn.Exec(ctx, `INSERT INTO customers (id, name, email, password) 
+func (c *CustomersGatewaySuite) TestCreate_OnNoErrors_ReturnsNil() {
+	customerId, err := uuid.Parse("620d8a0f-abc2-4f80-a1bc-407a037bd920")
+	c.Require().NoError(err)
+	type CustomerSchema struct {
+		Id       uuid.UUID
+		Name     string
+		Email    string
+		Password string
+	}
+
+	err = c.customersGateway.Create(applicationgateway.CustomerDTO{
+		Id:             customerId,
+		Name:           "John Doe",
+		Email:          "john.doe@gmail.com",
+		HashedPassword: "$2a$12$zkX5/W4LHciSZLR4YRLxHetVwAdppboUHJ6JnNhfSrKqVaSJk5hzu",
+	})
+	c.Require().NoError(err)
+
+	var customerSchema CustomerSchema
+	err = c.conn.QueryRow(context.Background(), `SELECT id, name, email, password FROM customers WHERE id = $1`, customerId).
+		Scan(&customerSchema.Id, &customerSchema.Name, &customerSchema.Email, &customerSchema.Password)
+	c.Require().NoError(err)
+	c.Equal("620d8a0f-abc2-4f80-a1bc-407a037bd920", customerSchema.Id.String())
+	c.Equal("John Doe", customerSchema.Name)
+	c.Equal("john.doe@gmail.com", customerSchema.Email)
+	c.Equal("$2a$12$zkX5/W4LHciSZLR4YRLxHetVwAdppboUHJ6JnNhfSrKqVaSJk5hzu", customerSchema.Password)
+}
+
+func (c *CustomersGatewaySuite) TestFindOneByEmail_OnFound_ReturnsCustomer() {
+	_, err := c.conn.Exec(context.Background(), `INSERT INTO customers (id, name, email, password) 
 		VALUES ('620d8a0f-abc2-4f80-a1bc-407a037bd920', 'John Doe', 'john.doe@gmail.com', '$2a$12$zkX5/W4LHciSZLR4YRLxHetVwAdppboUHJ6JnNhfSrKqVaSJk5hzu')`)
 	c.Require().NoError(err)
 
 	customerDTO, err := c.customersGateway.FindOneByEmail("john.doe@gmail.com")
-
 	c.Require().NoError(err)
+
 	c.Equal("620d8a0f-abc2-4f80-a1bc-407a037bd920", customerDTO.Id.String())
 	c.Equal("John Doe", customerDTO.Name)
 	c.Equal("$2a$12$zkX5/W4LHciSZLR4YRLxHetVwAdppboUHJ6JnNhfSrKqVaSJk5hzu", customerDTO.HashedPassword)
 }
 
-func (c *CustomersGatewaySuite) TestFindOneByEmail_OnNoFinding_ReturnsNil() {
+func (c *CustomersGatewaySuite) TestFindOneByEmail_OnNotFound_ReturnsNil() {
 	customerDTO, err := c.customersGateway.FindOneByEmail("john.doe@gmail.com")
-
 	c.Require().NoError(err)
+
 	c.Nil(customerDTO)
+}
+
+func (c *CustomersGatewaySuite) TestExistsByEmail_OnExists_ReturnsTrue() {
+	_, err := c.conn.Exec(context.Background(), `INSERT INTO customers (id, name, email, password) 
+		VALUES ('620d8a0f-abc2-4f80-a1bc-407a037bd920', 'John Doe', 'john.doe@gmail.com', '$2a$12$zkX5/W4LHciSZLR4YRLxHetVwAdppboUHJ6JnNhfSrKqVaSJk5hzu')`)
+	c.Require().NoError(err)
+
+	exists, err := c.customersGateway.ExistsByEmail("john.doe@gmail.com")
+	c.Require().NoError(err)
+
+	c.True(exists)
+}
+
+func (c *CustomersGatewaySuite) TestExistsByEmail_OnNotExists_ReturnsFalse() {
+	exists, err := c.customersGateway.ExistsByEmail("john.doe@gmail.com")
+	c.Require().NoError(err)
+
+	c.False(exists)
 }
 
 func TestCustomersGateway(t *testing.T) {

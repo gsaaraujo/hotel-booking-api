@@ -28,6 +28,14 @@ func NewOk(c echo.Context, data any) error {
 	})
 }
 
+func NewCreated(c echo.Context, data any) error {
+	return c.JSON(201, HttpResponseSuccess{
+		StatusCode: 201,
+		StatusText: "CREATED",
+		Data:       data,
+	})
+}
+
 func NewBadRequestValidation(c echo.Context, errorMessages []string) error {
 	return c.JSON(400, HttpResponseErrors{
 		StatusCode:    400,

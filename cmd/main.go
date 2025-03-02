@@ -48,9 +48,17 @@ func main() {
 		CustomersGateway: &customersGateway,
 	}
 
+	signUp := usecases.SignUp{
+		CustomersGateway: &customersGateway,
+	}
+
 	loginWithEmailAndPasswordHandler := handlers.LoginWithEmailAndPasswordHandler{
 		HttpLogger:                httpLogger,
 		LoginWithEmailAndPassword: &loginWithEmailAndPassword,
+	}
+
+	signUpHandler := handlers.SignUpHandler{
+		SignUp: &signUp,
 	}
 
 	e := echo.New()
@@ -58,6 +66,10 @@ func main() {
 
 	api.POST("/login-with-email-and-password", func(c echo.Context) error {
 		return loginWithEmailAndPasswordHandler.Handle(c)
+	})
+
+	api.POST("/sign-up", func(c echo.Context) error {
+		return signUpHandler.Handle(c)
 	})
 
 	err = e.Start(":8080")
