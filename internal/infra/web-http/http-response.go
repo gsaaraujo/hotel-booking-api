@@ -61,8 +61,8 @@ func NewUnauthorized(c echo.Context, errorMessage string) error {
 }
 
 func NewForbidden(c echo.Context, errorMessage string) error {
-	return c.JSON(401, HttpResponseError{
-		StatusCode:   401,
+	return c.JSON(403, HttpResponseError{
+		StatusCode:   403,
 		StatusText:   "FORBIDDEN",
 		ErrorMessage: errorMessage,
 	})

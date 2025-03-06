@@ -20,7 +20,19 @@ func NewHttpValidator() (HttpValidator, error) {
 		return HttpValidator{}, err
 	}
 
+	err = newValidator.RegisterValidation("integer", isInteger)
+
+	if err != nil {
+		return HttpValidator{}, err
+	}
+
 	err = newValidator.RegisterValidation("notEmpty", isNotEmpty)
+
+	if err != nil {
+		return HttpValidator{}, err
+	}
+
+	err = newValidator.RegisterValidation("positive", isPositive)
 
 	if err != nil {
 		return HttpValidator{}, err
@@ -34,8 +46,16 @@ func NewHttpValidator() (HttpValidator, error) {
 }
 
 func isString(fieldLevel validator.FieldLevel) bool {
-	_, ok := fieldLevel.Field().Interface().(string)
-	return ok
+	return fieldLevel.Field().Kind() == reflect.String
+}
+
+func isInteger(fieldLevel validator.FieldLevel) bool {
+	if fieldLevel.Field().Kind() != reflect.Float64 {
+		return false
+	}
+
+	value := fieldLevel.Field().Float()
+	return value == float64(int(value))
 }
 
 func isNotEmpty(fieldLevel validator.FieldLevel) bool {
@@ -46,6 +66,14 @@ func isNotEmpty(fieldLevel validator.FieldLevel) bool {
 	}
 
 	return strings.TrimSpace(field.String()) != ""
+}
+func isPositive(fieldLevel validator.FieldLevel) bool {
+	if fieldLevel.Field().Kind() != reflect.Float64 {
+		return false
+	}
+
+	value := fieldLevel.Field().Float()
+	return value >= 0
 }
 
 func (h *HttpValidator) Validate(body any) []string {
@@ -71,8 +99,12 @@ func (h *HttpValidator) Validate(body any) []string {
 				errorMessages = append(errorMessages, fmt.Sprintf("%s must be less than %s", field, param))
 			case "string":
 				errorMessages = append(errorMessages, fmt.Sprintf("%s must be string", field))
+			case "integer":
+				errorMessages = append(errorMessages, fmt.Sprintf("%s must be integer", field))
 			case "notEmpty":
 				errorMessages = append(errorMessages, fmt.Sprintf("%s must not be empty", field))
+			case "positive":
+				errorMessages = append(errorMessages, fmt.Sprintf("%s must be positive", field))
 			}
 		}
 

@@ -8,6 +8,7 @@ import (
 	"github.com/gsaaraujo/hotel-booking-api/internal/application/usecases"
 	"github.com/gsaaraujo/hotel-booking-api/internal/infra/gateways"
 	"github.com/gsaaraujo/hotel-booking-api/internal/infra/handlers"
+	"github.com/gsaaraujo/hotel-booking-api/internal/infra/repositories"
 	webhttp "github.com/gsaaraujo/hotel-booking-api/internal/infra/web-http"
 	"github.com/jackc/pgx/v5"
 	"github.com/labstack/echo/v4"
@@ -39,7 +40,20 @@ func main() {
 
 	httpLogger := webhttp.NewHttpLogger()
 
+	httpValidator, err := webhttp.NewHttpValidator()
+	if err != nil {
+		panic(err)
+	}
+
+	httpAuthorization := webhttp.HttpAuthorization{
+		SecretsGateway: &awsSecretsGateway,
+	}
+
 	customersGateway := gateways.CustomersGateway{
+		Conn: conn,
+	}
+
+	roomRepository := repositories.RoomsRepository{
 		Conn: conn,
 	}
 
@@ -52,6 +66,10 @@ func main() {
 		CustomersGateway: &customersGateway,
 	}
 
+	createRoom := usecases.CreateRoom{
+		RoomsRepository: &roomRepository,
+	}
+
 	loginWithEmailAndPasswordHandler := handlers.LoginWithEmailAndPasswordHandler{
 		HttpLogger:                httpLogger,
 		LoginWithEmailAndPassword: &loginWithEmailAndPassword,
@@ -59,6 +77,13 @@ func main() {
 
 	signUpHandler := handlers.SignUpHandler{
 		SignUp: &signUp,
+	}
+
+	createRoomHandler := handlers.CreateRoomHandler{
+		HttpLogger:        httpLogger,
+		HttpAuthorization: httpAuthorization,
+		HttpValidator:     httpValidator,
+		CreateRoom:        &createRoom,
 	}
 
 	e := echo.New()
@@ -70,6 +95,10 @@ func main() {
 
 	api.POST("/sign-up", func(c echo.Context) error {
 		return signUpHandler.Handle(c)
+	})
+
+	api.POST("/create-room", func(c echo.Context) error {
+		return createRoomHandler.Handle(c)
 	})
 
 	err = e.Start(":8080")
