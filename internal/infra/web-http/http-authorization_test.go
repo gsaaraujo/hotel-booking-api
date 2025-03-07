@@ -22,7 +22,7 @@ func (h *HttpAuthorizationSuite) SetupTest() {
 	}
 }
 
-func (h *HttpAuthorizationSuite) TestIsAdmin_OnValidToken_ReturnsTrue() {
+func (h *HttpAuthorizationSuite) TestIsAdmin_OnValidTokenWithRoleAdmin_ReturnsTrue() {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"role": "ADMIN",
 	})
@@ -35,7 +35,46 @@ func (h *HttpAuthorizationSuite) TestIsAdmin_OnValidToken_ReturnsTrue() {
 	h.True(isAdmin)
 }
 
-func (h *HttpAuthorizationSuite) TestIsAdmin_OnRoleIsNotAdmin_ReturnsFalse() {
+func (h *HttpAuthorizationSuite) TestIsCustomer_OnValidTokenWithRoleCustomer_ReturnsTrue() {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"role": "CUSTOMER",
+	})
+	signedToken, err := token.SignedString([]byte("6b45b2cb79974f989447f1d850d139f1"))
+	h.Require().NoError(err)
+	h.fakeSecretsGateway.Secrets = map[string]string{"JWT_SIGNING_ACCESS_TOKEN": "6b45b2cb79974f989447f1d850d139f1"}
+
+	isCustomer := h.httpAuthorization.IsCustomer(signedToken)
+
+	h.True(isCustomer)
+}
+
+func (h *HttpAuthorizationSuite) TestIsCustomer_OnValidTokenWithRoleAdmin_ReturnsTrue() {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"role": "ADMIN",
+	})
+	signedToken, err := token.SignedString([]byte("6b45b2cb79974f989447f1d850d139f1"))
+	h.Require().NoError(err)
+	h.fakeSecretsGateway.Secrets = map[string]string{"JWT_SIGNING_ACCESS_TOKEN": "6b45b2cb79974f989447f1d850d139f1"}
+
+	isCustomer := h.httpAuthorization.IsCustomer(signedToken)
+
+	h.True(isCustomer)
+}
+
+func (h *HttpAuthorizationSuite) TestIsCustomer_OnValidTokenWithRoleDiffThanCustomerOrAdmin_ReturnsFalse() {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"role": "ABC",
+	})
+	signedToken, err := token.SignedString([]byte("6b45b2cb79974f989447f1d850d139f1"))
+	h.Require().NoError(err)
+	h.fakeSecretsGateway.Secrets = map[string]string{"JWT_SIGNING_ACCESS_TOKEN": "6b45b2cb79974f989447f1d850d139f1"}
+
+	isCustomer := h.httpAuthorization.IsCustomer(signedToken)
+
+	h.False(isCustomer)
+}
+
+func (h *HttpAuthorizationSuite) TestIsAdmin_OnValidTokenButRoleIsNotAdmin_ReturnsFalse() {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"role": "CUSTOMER",
 	})
