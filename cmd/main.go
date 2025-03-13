@@ -2,9 +2,11 @@ package main
 
 import (
 	"context"
+	"os"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
+	applicationgateway "github.com/gsaaraujo/hotel-booking-api/internal/application/gateways"
 	"github.com/gsaaraujo/hotel-booking-api/internal/application/usecases"
 	"github.com/gsaaraujo/hotel-booking-api/internal/infra/gateways"
 	"github.com/gsaaraujo/hotel-booking-api/internal/infra/handlers"
@@ -22,11 +24,19 @@ func main() {
 
 	secretsClient := secretsmanager.NewFromConfig(defaultConfig)
 
-	awsSecretsGateway := gateways.AwsSecretsGateway{
-		SecretsClient: secretsClient,
+	var secretsGateway applicationgateway.ISecretsGateway
+
+	if os.Getenv("API_ENV") == "DEV" {
+		secretsGateway = &gateways.LocalSecretsGateway{
+			PathToFile: ".env",
+		}
+	} else {
+		secretsGateway = &gateways.AwsSecretsGateway{
+			SecretsClient: secretsClient,
+		}
 	}
 
-	postgresUrl, err := awsSecretsGateway.Get("POSTGRES_URL")
+	postgresUrl, err := secretsGateway.Get("POSTGRES_URL")
 	if err != nil {
 		panic(err)
 	}
@@ -46,7 +56,7 @@ func main() {
 	}
 
 	httpAuthorization := webhttp.HttpAuthorization{
-		SecretsGateway: &awsSecretsGateway,
+		SecretsGateway: secretsGateway,
 	}
 
 	customersGateway := gateways.CustomersGateway{
@@ -58,7 +68,7 @@ func main() {
 	}
 
 	loginWithEmailAndPassword := usecases.LoginWithEmailAndPassword{
-		SecretsGateway:   &awsSecretsGateway,
+		SecretsGateway:   secretsGateway,
 		CustomersGateway: &customersGateway,
 	}
 

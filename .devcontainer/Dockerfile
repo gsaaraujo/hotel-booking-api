@@ -15,3 +15,5 @@ ENV GOBIN=/usr/local/bin
 RUN go install github.com/jackc/tern/v2@latest
 
 ENV PATH=$PATH:$GOBIN
+
+ENV API_ENV=DEV
