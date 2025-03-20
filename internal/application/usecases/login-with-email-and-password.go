@@ -12,6 +12,7 @@ import (
 
 type JwtClaims struct {
 	CustomerId uuid.UUID `json:"customerId"`
+	Role       string    `json:"role"`
 	jwt.RegisteredClaims
 }
 
@@ -53,6 +54,8 @@ func (l *LoginWithEmailAndPassword) Execute(input LoginWithEmailAndPasswordInput
 	ONE_MONTH := time.Now().Add(30 * 24 * time.Hour)
 
 	claims := &JwtClaims{
+		CustomerId: customerDTO.Id,
+		Role:       "CUSTOMER",
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(ONE_MONTH),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

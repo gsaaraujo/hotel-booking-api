@@ -26,7 +26,7 @@ func main() {
 
 	var secretsGateway applicationgateway.ISecretsGateway
 
-	if os.Getenv("API_ENV") == "DEV" {
+	if os.Getenv("API_ENV") == "LOCAL" {
 		secretsGateway = &gateways.LocalSecretsGateway{
 			PathToFile: ".env",
 		}
@@ -96,6 +96,12 @@ func main() {
 		CreateRoom:        &createRoom,
 	}
 
+	getRoomsHandler := handlers.GetRoomsHandler{
+		Conn:              conn,
+		HttpLogger:        httpLogger,
+		HttpAuthorization: httpAuthorization,
+	}
+
 	e := echo.New()
 	api := e.Group("/api")
 
@@ -109,6 +115,10 @@ func main() {
 
 	api.POST("/create-room", func(c echo.Context) error {
 		return createRoomHandler.Handle(c)
+	})
+
+	api.GET("/rooms", func(c echo.Context) error {
+		return getRoomsHandler.Handle(c)
 	})
 
 	err = e.Start(":8080")
